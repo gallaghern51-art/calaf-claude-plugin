@@ -1,0 +1,24 @@
+{
+  "name": "calaf",
+  "displayName": "Calaf",
+  "version": "1.0.0",
+  "description": "Run MBA recruiting from Claude: your Calaf book of firms, contacts, applications, meetings and interview prep, with interactive cards for your day, flashcard rehearsal, interview and coffee-chat briefs, and staged decks you confirm in the chat.",
+  "author": {
+    "name": "Calaf, Inc.",
+    "email": "support@calaf.ai",
+    "url": "https://calaf.ai"
+  },
+  "homepage": "https://calaf.ai/guide/assistant",
+  "repository": "https://github.com/gallaghern51-art/calaf-claude-plugin",
+  "license": "MIT",
+  "keywords": [
+    "recruiting",
+    "mba",
+    "crm",
+    "interview-prep",
+    "networking",
+    "flashcards",
+    "investment-banking",
+    "consulting"
+  ]
+}

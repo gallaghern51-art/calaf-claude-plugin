@@ -1,0 +1,1 @@
+{"name":"David Okafor","firm":"Centerview","title":"Associate","status":"Chatted","warmth":5,"last_touch":"2026-09-10","next_followup_on":null,"timeline":[{"on":"2026-09-10","type":"Coffee Chat","notes":"Offered intro to Hannah Weiss in Healthcare"}]}

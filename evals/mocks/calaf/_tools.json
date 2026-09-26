@@ -1,0 +1,3555 @@
+{
+ "tools": [
+  {
+   "name": "get_seed_format",
+   "title": "Get the Calaf seed file format",
+   "description": "Returns the complete specification (markdown) for calaf_seed: 1 JSON documents — the format to follow when a user asks for a Calaf seed. Read it before authoring; then check your draft with validate_seed.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Get the Calaf seed file format"
+   }
+  },
+  {
+   "name": "validate_seed",
+   "title": "Validate a Calaf seed file",
+   "description": "Runs a draft seed document through the exact parser the Calaf app imports with. Pass the entire JSON document as a string. Returns per-section counts and the precise issue list (path, severity, message): severity \"error\" means nothing imports; \"dropped\" means that row or field is discarded and the rest lands. Fix the issues and validate again until clean before delivering the file to the user.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "seed": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "object",
+        "propertyNames": {
+         "type": "string"
+        },
+        "additionalProperties": {}
+       }
+      ],
+      "description": "The complete seed JSON document — as text, or as the JSON object itself."
+     }
+    },
+    "required": [
+     "seed"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Validate a Calaf seed file"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "valid": {
+      "type": "boolean"
+     },
+     "counts": {
+      "type": "object",
+      "properties": {
+       "orgs": {
+        "type": "number"
+       },
+       "contacts": {
+        "type": "number"
+       },
+       "templates": {
+        "type": "number"
+       },
+       "prep": {
+        "type": "number"
+       },
+       "keyDates": {
+        "type": "number"
+       },
+       "orgKinds": {
+        "type": "number"
+       },
+       "ladderRungs": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "orgs",
+       "contacts",
+       "templates",
+       "prep",
+       "keyDates",
+       "orgKinds",
+       "ladderRungs"
+      ],
+      "additionalProperties": false
+     },
+     "hasVocab": {
+      "type": "boolean"
+     },
+     "hasPlanner": {
+      "type": "boolean"
+     },
+     "issues": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "path": {
+         "type": "string"
+        },
+        "message": {
+         "type": "string"
+        },
+        "severity": {
+         "type": "string",
+         "enum": [
+          "error",
+          "dropped"
+         ]
+        }
+       },
+       "required": [
+        "path",
+        "message",
+        "severity"
+       ],
+       "additionalProperties": false
+      }
+     }
+    },
+    "required": [
+     "valid",
+     "counts",
+     "hasVocab",
+     "hasPlanner",
+     "issues"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "list_workspaces",
+   "title": "List the account's workspaces",
+   "description": "Lists the caller's Calaf workspaces — key, display name, and position. Use the key as the `workspace` argument to import_seed.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the account's workspaces"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "workspaces": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "key": {
+         "type": "string"
+        },
+        "name": {
+         "type": "string"
+        },
+        "emoji": {
+         "anyOf": [
+          {
+           "type": "string"
+          },
+          {
+           "type": "null"
+          }
+         ]
+        }
+       },
+       "required": [
+        "key",
+        "name",
+        "emoji"
+       ],
+       "additionalProperties": false
+      }
+     }
+    },
+    "required": [
+     "workspaces"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "import_seed",
+   "title": "Import a seed into a workspace",
+   "description": "Imports a valid calaf_seed document into one of the caller's workspaces — the same landing the app's Settings → Workspace → Seeds import performs: organizations (deduped account-wide by name, then joined to the workspace), templates (deduped within the workspace), and prep questions (deduped account-wide). Organizations the book already holds are ENRICHED, never overwritten: the file may complete fields the user left empty (tier, location, kind, groups, why), and any value the user already has is kept — so re-importing an improved export completes the book without risking it. Contacts are never written directly: people in the file are STAGED as a reviewable batch in the app, where the user accepts, trims, or discards them together (and can undo an accepted batch) — tell the user to open Calaf → Network to review the staged people. A person must name an org to be stageable. Validate the seed first with validate_seed; this tool refuses documents with errors.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "The workspace key to import into, from list_workspaces."
+     },
+     "seed": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "object",
+        "propertyNames": {
+         "type": "string"
+        },
+        "additionalProperties": {}
+       }
+      ],
+      "description": "The complete seed JSON document — as text, or as the JSON object itself."
+     },
+     "parts": {
+      "description": "Which parts to process. Defaults to everything the file carries. orgs/templates/prep land directly (deduped); contacts means \"stage the people for in-app review\", never a direct write.",
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "orgs",
+        "templates",
+        "prep",
+        "contacts"
+       ]
+      }
+     }
+    },
+    "required": [
+     "workspace",
+     "seed"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Import a seed into a workspace"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "ok": {
+      "type": "boolean"
+     },
+     "landed": {
+      "type": "object",
+      "propertyNames": {
+       "type": "string"
+      },
+      "additionalProperties": {
+       "type": "number"
+      }
+     },
+     "failed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "enriched": {
+      "type": "object",
+      "properties": {
+       "firms": {
+        "type": "number"
+       },
+       "fields": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "firms",
+       "fields"
+      ],
+      "additionalProperties": false
+     },
+     "staged": {
+      "type": "object",
+      "properties": {
+       "people": {
+        "type": "number"
+       },
+       "orgs": {
+        "type": "number"
+       },
+       "buildId": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "skippedWithoutOrg": {
+        "type": "number"
+       },
+       "skippedInvalid": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "people",
+       "orgs",
+       "buildId",
+       "skippedWithoutOrg",
+       "skippedInvalid"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "required": [
+     "ok",
+     "landed",
+     "failed",
+     "enriched",
+     "staged"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "export_seed",
+   "title": "Export a workspace as a seed",
+   "description": "Serializes one of the caller's workspaces back into a calaf_seed document — the other half of the loop: read the book as a seed, improve it, re-import it (imports are deduplicated, so a round trip never doubles anything). Privacy defaults hold things back unless explicitly requested: people (third-party PII), the user's personal notes, and content that arrived from someone else's seed. Tell the user what was withheld when they might expect it.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "The workspace key to export, from list_workspaces."
+     },
+     "include_people": {
+      "description": "Include contacts linked to exported organizations. Default false — people are PII and an exported file is one forward away from shared.",
+      "type": "boolean"
+     },
+     "include_notes": {
+      "description": "Include the user's personal why-notes and contact notes. Default false.",
+      "type": "boolean"
+     },
+     "include_seeded": {
+      "description": "Include templates and prep that arrived from other seeds (often curated house content). Default false — only user-authored rows export.",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Export a workspace as a seed"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "counts": {
+      "type": "object",
+      "properties": {
+       "orgs": {
+        "type": "number"
+       },
+       "contacts": {
+        "type": "number"
+       },
+       "templates": {
+        "type": "number"
+       },
+       "prep": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "orgs",
+       "contacts",
+       "templates",
+       "prep"
+      ],
+      "additionalProperties": false
+     },
+     "truncated": {
+      "type": "object",
+      "properties": {
+       "orgs": {
+        "type": "number"
+       },
+       "contacts": {
+        "type": "number"
+       },
+       "templates": {
+        "type": "number"
+       },
+       "prep": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "orgs",
+       "contacts",
+       "templates",
+       "prep"
+      ],
+      "additionalProperties": false
+     },
+     "withheld": {
+      "type": "object",
+      "properties": {
+       "people": {
+        "type": "number"
+       },
+       "seededTemplates": {
+        "type": "number"
+       },
+       "seededPrep": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "people",
+       "seededTemplates",
+       "seededPrep"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "required": [
+     "counts",
+     "truncated",
+     "withheld"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "get_profile_schema",
+   "title": "Get the firm-profile module schemas",
+   "description": "Returns the module shapes submit_firm_profile accepts (overview, hq, leadership, comp, process, culture/recruiting notes, sources) and the sourcing rules a submission must meet. Read it before researching a firm; then check current state with get_firm_profile and submit what you can source.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Get the firm-profile module schemas"
+   }
+  },
+  {
+   "name": "get_firm_profile",
+   "title": "Read a firm's profile state",
+   "description": "Returns the caller's own research overlay for one firm in one workspace (the modules submit_firm_profile writes, with per-field provenance) plus whether Calaf holds a shared house profile for it. Read this BEFORE submitting, so piece-by-piece edits merge against real state instead of your memory of it.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "firm": {
+      "type": "string",
+      "description": "The firm's name as it appears in the user's book."
+     }
+    },
+    "required": [
+     "workspace",
+     "firm"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Read a firm's profile state"
+   }
+  },
+  {
+   "name": "submit_firm_profile",
+   "title": "Write firm research into the user’s profile overlay",
+   "description": "Writes sourced research modules onto one firm in the caller's own overlay — rendered on their firm page beside the house data, badged as assistant research. Merge contract: empty fields fill, fields you wrote before refresh, fields the USER typed are never overwritten (reported as conflicts instead). Pass a module as null in `clear` to remove a field you own. Sources are REQUIRED — a claim without a source is dropped. Read get_profile_schema for shapes and the sourcing bar; read get_firm_profile first for current state.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "firm": {
+      "type": "string",
+      "description": "The firm's name as it appears in the user's book."
+     },
+     "overview": {
+      "type": "string"
+     },
+     "hq": {
+      "type": "string"
+     },
+     "culture_notes": {
+      "type": "string"
+     },
+     "recruiting_notes": {
+      "type": "string"
+     },
+     "leadership": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "title": {
+         "type": "string"
+        },
+        "note": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "name",
+        "title"
+       ]
+      }
+     },
+     "comp": {
+      "description": "Free text so ranges stay ranges; state the year in notes.",
+      "type": "object",
+      "properties": {
+       "base": {
+        "type": "string"
+       },
+       "signing": {
+        "type": "string"
+       },
+       "bonus": {
+        "type": "string"
+       },
+       "total": {
+        "type": "string"
+       },
+       "notes": {
+        "type": "string"
+       }
+      }
+     },
+     "process": {
+      "type": "object",
+      "properties": {
+       "stages": {
+        "type": "array",
+        "items": {
+         "type": "string"
+        }
+       },
+       "timeline": {
+        "type": "string"
+       },
+       "class_size": {
+        "type": "string"
+       },
+       "final_round": {
+        "type": "string"
+       },
+       "recruits_from": {
+        "type": "string"
+       },
+       "return_offer": {
+        "type": "string"
+       }
+      }
+     },
+     "sources": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "1–20 URLs or citations. Required."
+     },
+     "clear": {
+      "description": "Assistant-owned fields to remove entirely (minor-edit path).",
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "overview",
+        "hq",
+        "culture_notes",
+        "recruiting_notes",
+        "leadership",
+        "comp",
+        "process"
+       ]
+      }
+     }
+    },
+    "required": [
+     "workspace",
+     "firm",
+     "sources"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Write firm research into the user’s profile overlay"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "landed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "cleared": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "conflicts": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "issues": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "landed",
+     "cleared",
+     "conflicts",
+     "issues"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "log_touchpoint",
+   "title": "Log a touchpoint",
+   "description": "Records an interaction with a contact or firm in the user's book — the core CRM verb, with the app's own automations: chats bump the contact's stage to Chatted, replies to Responded, outreach to Outreach Sent (never downward); follow_up_in_days schedules the next follow-up (which appears on the user's calendar); thank_you_task adds a next-day thank-you task; real activity wakes a Researching firm to Networking. A chat or event (Coffee Chat, Phone Call, Video Call, Corporate Presentation, Networking Event, Closed Event) also goes on the calendar as done, opening on its debrief — or completes the booking it was, if the user booked it and never debriefed it. Pass at and time_zone for those when the user said when it was; without them it shows on its day with no time. Ask rather than guess. A chat that has not happened yet is refused: book it with schedule_meeting. Only for people already in the book — propose new people via import_seed. Interviews are logged on the application in the app, not here.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "contact": {
+      "description": "The person's full name as it appears in the book.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Firm name — for firm-level touchpoints, or to disambiguate.",
+      "type": "string"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "Cold Email",
+       "Follow-Up Email",
+       "Reply Received",
+       "Coffee Chat",
+       "Phone Call",
+       "Video Call",
+       "Corporate Presentation",
+       "Networking Event",
+       "Closed Event",
+       "Thank-You Sent",
+       "LinkedIn Touch",
+       "Other"
+      ]
+     },
+     "date": {
+      "description": "YYYY-MM-DD; defaults to today.",
+      "type": "string"
+     },
+     "notes": {
+      "description": "What happened, worth remembering.",
+      "type": "string"
+     },
+     "follow_up_in_days": {
+      "description": "Schedule the next follow-up this many days after the touchpoint.",
+      "type": "number"
+     },
+     "thank_you_task": {
+      "description": "Add a thank-you task due the next business day, never a weekend (meetings deserve one).",
+      "type": "boolean"
+     },
+     "at": {
+      "description": "For a chat or event: the 24-hour time it started, HH:MM, if the user said. Omit rather than guess; it then shows with no time.",
+      "type": "string"
+     },
+     "time_zone": {
+      "description": "IANA zone for at, e.g. America/New_York — the user's own zone. Defaults to UTC.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "type"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Log a touchpoint"
+   }
+  },
+  {
+   "name": "update_contact",
+   "title": "Complete a contact’s details",
+   "description": "Enriches a person ALREADY in the user's book. Identity fields (email, phone, LinkedIn, school, title, group) fill only where empty — the user's own values are never overwritten, differences are reported back. Relationship facets (warmth 1–5, status, next follow-up, connection type) are explicit verbs: \"mark Jane dormant\" sets. Linking to a firm fills only when the person has none. append_note adds a dated, attributed note without touching what the user wrote. Creating people happens via import_seed's staged review, never here.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "contact": {
+      "type": "string",
+      "description": "The person's full name as it appears in the book."
+     },
+     "email": {
+      "type": "string"
+     },
+     "phone": {
+      "type": "string"
+     },
+     "linkedin_url": {
+      "description": "A canonical https://linkedin.com/in/... URL.",
+      "type": "string"
+     },
+     "school": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "group": {
+      "description": "Coverage group or team.",
+      "type": "string"
+     },
+     "warmth": {
+      "description": "1 (cold) to 5 (advocate-warm).",
+      "type": "number"
+     },
+     "status": {
+      "description": "The relationship stage.",
+      "type": "string",
+      "enum": [
+       "To Contact",
+       "Outreach Sent",
+       "Responded",
+       "Call Scheduled",
+       "Chatted",
+       "Advocate",
+       "Dormant"
+      ]
+     },
+     "next_followup_on": {
+      "description": "YYYY-MM-DD — lands on the user’s calendar.",
+      "type": "string"
+     },
+     "connection_type": {
+      "type": "string",
+      "enum": [
+       "Alumni",
+       "MBA Classmate",
+       "Veteran Network",
+       "Referral",
+       "Cold Outreach",
+       "Event",
+       "Friend & Family",
+       "Other"
+      ]
+     },
+     "firm": {
+      "description": "Link to a firm — only fills when the person has none.",
+      "type": "string"
+     },
+     "append_note": {
+      "description": "Added below existing notes, dated and marked as from the assistant.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "contact"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Complete a contact’s details"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "landed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "conflicts": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "landed",
+     "conflicts"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "add_task",
+   "title": "Add a task (and so, the calendar)",
+   "description": "Creates a due-dated task in the user's book, optionally tied to a contact or firm. Tasks, follow-ups, and application deadlines are exactly what the user's calendar renders — this is how an assistant puts something on it.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "type": "string",
+      "description": "What to do, imperative and short."
+     },
+     "due_on": {
+      "type": "string",
+      "description": "YYYY-MM-DD."
+     },
+     "contact": {
+      "type": "string"
+     },
+     "firm": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "title",
+     "due_on"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add a task (and so, the calendar)"
+   }
+  },
+  {
+   "name": "get_contacts",
+   "title": "List the user's contacts",
+   "description": "Paged summary of the user's network — name, firm, title, status, next follow-up, and which detail fields are still empty (worth researching). Read this before logging touchpoints or updating people, so you use the names the book uses.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "search": {
+      "description": "Case-insensitive name filter.",
+      "type": "string"
+     },
+     "limit": {
+      "description": "Max rows (default 50, cap 200).",
+      "type": "number"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the user's contacts"
+   }
+  },
+  {
+   "name": "get_firms",
+   "title": "List a workspace's firms",
+   "description": "The roster of one workspace — name, tier, status, priority, target flag — so research and touchpoints use the names the book uses.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "limit": {
+      "description": "Max rows (default 100, cap 500).",
+      "type": "number"
+     }
+    },
+    "required": [
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List a workspace's firms"
+   }
+  },
+  {
+   "name": "log_firm_work",
+   "title": "Log a deal or work item on a firm's work log",
+   "description": "Adds a deal, transaction, or notable work item to a firm's work log in one workspace — the material coffee-chat talking points are made of. Cite where it came from (source_kind + source_url) and how solid it is (confidence). For a priced deal (an acquisition, merger, divestiture, financing, IPO, stake or joint venture), give its brackets: size_label, consideration, valuation, rationale and trend, each read from the announcement or filing at source_url — leave out any bracket no source discloses (it reads \"Not disclosed\"), never estimate one. Log deals from the last two years unless the user asks for an older one by name. Assistant-logged items are marked as yours and only those can be removed with remove_firm_work; the user's own entries are untouchable.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "headline": {
+      "type": "string",
+      "description": "One line: what the deal or work item is (≤200 chars)."
+     },
+     "detail": {
+      "description": "Context worth having in the room.",
+      "type": "string"
+     },
+     "deal_type": {
+      "type": "string",
+      "description": "Free text, e.g. \"M&A sell-side\", \"IPO\", \"LBO\", \"Restructuring\" (≤60 chars)."
+     },
+     "sector": {
+      "type": "string"
+     },
+     "size_label": {
+      "description": "Deal size, the first bracket, e.g. \"$4.2B\". Leave it out when no source discloses it.",
+      "type": "string"
+     },
+     "firm_role": {
+      "description": "The firm's role, e.g. \"Lead left\", \"Financial advisor\".",
+      "type": "string"
+     },
+     "announced_on": {
+      "description": "YYYY-MM-DD.",
+      "type": "string"
+     },
+     "source_kind": {
+      "description": "Defaults to \"News or press\".",
+      "type": "string",
+      "enum": [
+       "Coffee chat",
+       "Interview",
+       "Networking event",
+       "News or press",
+       "Firm website",
+       "Worked on it",
+       "Other"
+      ]
+     },
+     "source_url": {
+      "description": "Where this can be verified.",
+      "type": "string"
+     },
+     "confidence": {
+      "description": "Defaults to \"Reported\". Use \"Confirmed\" only for firm-published facts.",
+      "type": "string",
+      "enum": [
+       "Confirmed",
+       "Reported",
+       "Rumored"
+      ]
+     },
+     "talking_point": {
+      "description": "Pin it as a talking point for chats and interviews.",
+      "type": "boolean"
+     },
+     "consideration": {
+      "description": "How it was paid for, e.g. \"All cash, $124.00 per share\" or \"70% stock / 30% cash\" (≤300 chars). Omit when undisclosed.",
+      "type": "string",
+      "maxLength": 300
+     },
+     "valuation": {
+      "description": "What it valued the target at: enterprise or equity value, the multiple, the premium (≤400 chars). Omit when undisclosed.",
+      "type": "string",
+      "maxLength": 400
+     },
+     "rationale": {
+      "description": "Why the buyer did it: cost or revenue synergies, accretive or dilutive, strategic fit, as the announcement states it (≤800 chars).",
+      "type": "string",
+      "maxLength": 800
+     },
+     "trend": {
+      "description": "The larger economic trend it ties into, e.g. consolidation in a sector, AI infrastructure spending (≤400 chars).",
+      "type": "string",
+      "maxLength": 400
+     }
+    },
+    "required": [
+     "firm",
+     "workspace",
+     "headline",
+     "deal_type"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Log a deal or work item on a firm's work log"
+   }
+  },
+  {
+   "name": "get_firm_work",
+   "title": "Read a firm's work log",
+   "description": "Lists the logged deals and work items on one firm in one workspace, marking which rows are assistant-logged (removable via remove_firm_work) versus user-logged, with a priced deal's brackets (size, consideration, valuation, rationale, trend) in `terms`. Assistant-logged rows were researched by AI: when the result carries `deals_disclaimer`, pass it on. Read before adding, so you don't log the same deal twice.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     }
+    },
+    "required": [
+     "firm",
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Read a firm's work log"
+   }
+  },
+  {
+   "name": "remove_firm_work",
+   "title": "Remove a work item the assistant logged",
+   "description": "Deletes ONE work-log item by its exact headline — and only if the assistant wrote it (via log_firm_work). Items the user logged by hand are refused; they remove their own in the app. Use for corrections: a deal that turned out wrong, a duplicate, a stale rumor.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "headline": {
+      "type": "string",
+      "description": "The exact headline of the item to remove (see get_firm_work)."
+     }
+    },
+    "required": [
+     "firm",
+     "workspace",
+     "headline"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Remove a work item the assistant logged"
+   }
+  },
+  {
+   "name": "get_applications",
+   "title": "List the user's applications",
+   "description": "The recruiting pipeline: each application's firm, program, status, deadline, and next interview date. Read this before scheduling interviews so they attach to the right application.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "description": "Limit to one workspace (key from list_workspaces).",
+      "type": "string"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the user's applications"
+   }
+  },
+  {
+   "name": "schedule_interview",
+   "title": "Schedule or log an interview",
+   "description": "Puts an interview round on an application's timeline — and so on the user's calendar. Attaches to the firm's open application (says which, if the firm has several). Set completed=true to log one that already happened, optionally with the outcome. Interviews need an existing application; the user creates applications in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "round": {
+      "type": "string",
+      "description": "e.g. \"First round\", \"Superday\" (≤80 chars)."
+     },
+     "on": {
+      "type": "string",
+      "description": "YYYY-MM-DD."
+     },
+     "completed": {
+      "description": "True = it already happened; logs it as Completed.",
+      "type": "boolean"
+     },
+     "format": {
+      "description": "Interview content format; defaults to \"Mixed\".",
+      "type": "string",
+      "enum": [
+       "Behavioral",
+       "Technical",
+       "Case",
+       "Mixed",
+       "Other"
+      ]
+     },
+     "interviewers": {
+      "description": "Names, comma-separated.",
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     },
+     "outcome": {
+      "description": "Only with completed=true; defaults to \"Pending\".",
+      "type": "string",
+      "enum": [
+       "Pending",
+       "Advanced",
+       "Rejected",
+       "Offer",
+       "Withdrawn"
+      ]
+     }
+    },
+    "required": [
+     "firm",
+     "round",
+     "on"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Schedule or log an interview"
+   }
+  },
+  {
+   "name": "schedule_meeting",
+   "title": "Book a meeting with a contact or a firm",
+   "description": "Books a coffee chat, call or firm event with a real time on it — it lands on the user's calendar and their .ics feed. Belongs to EXACTLY ONE of a contact (a chat with a person) or a firm (a firm-wide event with no single person); naming both is refused. Set completed=true to log one that already happened, which also writes the touchpoint. Meetings reference people who already exist; this never creates a contact.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "contact": {
+      "description": "Contact name as it appears in the book. Use this OR firm, never both.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Firm name, for a firm-wide event with no single person.",
+      "type": "string"
+     },
+     "type": {
+      "description": "Defaults to \"Coffee Chat\".",
+      "type": "string",
+      "enum": [
+       "Coffee Chat",
+       "Phone Call",
+       "Video Call",
+       "Corporate Presentation",
+       "Networking Event",
+       "Closed Event",
+       "Other"
+      ]
+     },
+     "on": {
+      "type": "string",
+      "description": "YYYY-MM-DD."
+     },
+     "at": {
+      "type": "string",
+      "description": "HH:MM, 24-hour, in the time zone below."
+     },
+     "time_zone": {
+      "description": "IANA zone the time is stated in, e.g. \"America/New_York\". Defaults to UTC.",
+      "type": "string"
+     },
+     "duration_minutes": {
+      "description": "5–480; defaults to 30.",
+      "type": "number"
+     },
+     "location": {
+      "type": "string"
+     },
+     "agenda": {
+      "description": "What the user wants out of it.",
+      "type": "string"
+     },
+     "completed": {
+      "description": "True = it already happened; logs it and writes the touchpoint.",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "on",
+     "at"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Book a meeting with a contact or a firm"
+   }
+  },
+  {
+   "name": "complete_meeting",
+   "title": "Say what happened to a booked meeting",
+   "description": "Settles a meeting that has already happened. Completed writes the touchpoint that coverage, warmth and Ask Calaf's digest are computed from — which is the point of booking it in Calaf. No-show records that the other person did not turn up (real signal, but not a conversation, so no touchpoint). Cancelled records that it did not happen. Omit `on` when exactly one past meeting is waiting; pass it when several are.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "contact": {
+      "description": "Contact name. Use this OR firm.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Firm name, for a firm-wide event.",
+      "type": "string"
+     },
+     "on": {
+      "description": "YYYY-MM-DD — which meeting, when more than one is unconfirmed.",
+      "type": "string"
+     },
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "Completed",
+       "No-show",
+       "Cancelled"
+      ],
+      "description": "Completed / No-show / Cancelled."
+     },
+     "notes": {
+      "description": "What was discussed; becomes the touchpoint note.",
+      "type": "string"
+     },
+     "follow_up_in_days": {
+      "description": "Sets the contact’s next follow-up, counted from the meeting day.",
+      "type": "number"
+     },
+     "thank_you_task": {
+      "description": "Creates a thank-you task due the next business day after the meeting, never a weekend.",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "outcome"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Say what happened to a booked meeting"
+   }
+  },
+  {
+   "name": "get_meetings",
+   "title": "Read booked, past, or unconfirmed meetings",
+   "description": "Lists meetings. window='upcoming' is what is booked ahead; 'past' is what has been settled; 'unconfirmed' is meetings whose time has passed that the user never said the outcome of — the one worth checking daily, because each is a touchpoint the book has not been given yet.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "window": {
+      "description": "Defaults to \"upcoming\".",
+      "type": "string",
+      "enum": [
+       "upcoming",
+       "past",
+       "unconfirmed"
+      ]
+     },
+     "contact": {
+      "description": "Narrow to one person.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Narrow to one firm’s own events.",
+      "type": "string"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Read booked, past, or unconfirmed meetings"
+   }
+  },
+  {
+   "name": "get_meeting_brief",
+   "title": "Read the brief Calaf wrote for a chat",
+   "description": "The two-minute brief before a meeting, as the user's own page shows it: what the person will ask them (the set pieces, tuned by seniority, as `expect`), what other members report on the Network Commons about this person or about chats at the firm (ratings as words, how they were described, how they responded, and the questions they have asked members; aggregated, never attributed; `commons`, absent when the Commons has nothing), common ground, why the firm and the group with the three reasons to say out loud, likely technicals, open threads, what others at the firm told them, notebook takeaways, the deals to raise (a priced one with its five brackets in `terms`; researched ones and ones the assistant logged flagged `researched` and covered by `deals_disclaimer`, which you pass on; a researched deal now older than two years, or one no longer in the book, left out as the page leaves it out), connections they might be missing, the questions to ask (the user's own list for this chat, or the brief's five suggestions) — each line naming the book entry it rests on. Read-only: the user writes or regenerates it in Calaf, and it is metered per day. Defaults to the next booked meeting; pass a meeting id from get_meetings, or narrow by contact or firm.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "meeting_id": {
+      "description": "A meeting id from get_meetings. Defaults to the next one booked.",
+      "type": "string"
+     },
+     "contact": {
+      "description": "Narrow to the next chat with one person.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Narrow to the next of one firm’s own events.",
+      "type": "string"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Read the brief Calaf wrote for a chat"
+   }
+  },
+  {
+   "name": "add_application",
+   "title": "Add an application to the pipeline",
+   "description": "Opens a pipeline row for a firm and program — the thing interviews attach to and deadlines hang off. Defaults to Watching; pass a further status only when the user says they've already applied. One application per firm+program; use update_application to move an existing one.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "program": {
+      "type": "string",
+      "description": "e.g. \"2027 Summer Associate\"."
+     },
+     "season": {
+      "type": "string"
+     },
+     "status": {
+      "description": "Defaults to Watching.",
+      "type": "string",
+      "enum": [
+       "Watching",
+       "Open",
+       "In Progress",
+       "Submitted",
+       "Online Assessment",
+       "HireVue",
+       "First Round",
+       "Superday",
+       "Offer",
+       "Rejected",
+       "Withdrawn"
+      ]
+     },
+     "opens_on": {
+      "description": "YYYY-MM-DD.",
+      "type": "string"
+     },
+     "deadline_on": {
+      "description": "YYYY-MM-DD — lands on the user’s calendar.",
+      "type": "string"
+     },
+     "link": {
+      "description": "The posting URL.",
+      "type": "string"
+     },
+     "location": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "firm",
+     "workspace",
+     "program"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add an application to the pipeline"
+   }
+  },
+  {
+   "name": "update_application",
+   "title": "Move or complete an application",
+   "description": "Updates a firm's application the way the app's board does: a status move appends to the stage history and backfills the applied date (clamped to today); outcome records how it ended (offer_accepted / offer_declined / rejected / withdrawn); offered comp fills only where the user hasn't entered their own numbers (differences reported, never overwritten); append_note adds a dated, attributed note below the user's own.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "program": {
+      "description": "Disambiguates when the firm has several applications.",
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "Watching",
+       "Open",
+       "In Progress",
+       "Submitted",
+       "Online Assessment",
+       "HireVue",
+       "First Round",
+       "Superday",
+       "Offer",
+       "Rejected",
+       "Withdrawn"
+      ]
+     },
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "offer_accepted",
+       "offer_declined",
+       "rejected",
+       "withdrawn"
+      ]
+     },
+     "offer_received_on": {
+      "description": "YYYY-MM-DD.",
+      "type": "string"
+     },
+     "deadline_on": {
+      "description": "YYYY-MM-DD.",
+      "type": "string"
+     },
+     "applied_on": {
+      "description": "YYYY-MM-DD — only when the user states the real date.",
+      "type": "string"
+     },
+     "comp_base_usd": {
+      "type": "number"
+     },
+     "comp_signing_usd": {
+      "type": "number"
+     },
+     "comp_bonus_usd": {
+      "type": "number"
+     },
+     "append_note": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "firm"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Move or complete an application"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "landed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "conflicts": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "landed",
+     "conflicts"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "get_tasks",
+   "title": "List the user's tasks",
+   "description": "The to-do list the user's calendar renders — open by default, or filtered to overdue / today / this week / done. Read before completing or snoozing, so you use the titles the book uses.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "scope": {
+      "description": "Defaults to open.",
+      "type": "string",
+      "enum": [
+       "open",
+       "overdue",
+       "today",
+       "week",
+       "done"
+      ]
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the user's tasks"
+   }
+  },
+  {
+   "name": "complete_task",
+   "title": "Mark a task done",
+   "description": "Completes ONE open task by title (exact match wins; ambiguity is refused with the candidates). Only marks done — never deletes.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "type": "string",
+      "description": "The task title, from get_tasks."
+     }
+    },
+    "required": [
+     "title"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Mark a task done"
+   }
+  },
+  {
+   "name": "snooze_task",
+   "title": "Push a task’s due date out",
+   "description": "Moves ONE open task's due date N days out (from its current due date, or today if it has none or is overdue).",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "type": "string",
+      "description": "The task title, from get_tasks."
+     },
+     "days": {
+      "type": "number",
+      "description": "1–365."
+     }
+    },
+    "required": [
+     "title",
+     "days"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Push a task’s due date out"
+   }
+  },
+  {
+   "name": "add_firm",
+   "title": "Add a firm to a workspace",
+   "description": "The app's two-layer write: a firm the book doesn't have is created (marked as assistant-added), and either way it is joined to the workspace — an existing firm is never doubled. Status defaults to Researching. Richer facts belong elsewhere: profile modules via submit_firm_profile, deals via log_firm_work, offices via add_office.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "The firm name."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "tier": {
+      "description": "The workspace’s tier vocabulary; omit when unsure.",
+      "type": "string"
+     },
+     "location": {
+      "type": "string"
+     },
+     "kind": {
+      "description": "Org kind, e.g. \"Investment Bank\", \"PE Fund\".",
+      "type": "string"
+     },
+     "status": {
+      "description": "Defaults to Researching.",
+      "type": "string",
+      "enum": [
+       "Researching",
+       "Networking",
+       "Applied",
+       "Interviewing",
+       "Offer",
+       "Dormant",
+       "Out"
+      ]
+     },
+     "priority": {
+      "description": "1 (highest) to 3.",
+      "type": "number"
+     },
+     "campus_recruiting": {
+      "description": "Whether the firm runs its own structured process at the user's school (on_campus: wait for its instructions before reaching out) or the user must start the conversation (off_campus). Omit when unknown.",
+      "type": "string",
+      "enum": [
+       "on_campus",
+       "off_campus"
+      ]
+     },
+     "why_note": {
+      "description": "Why this firm matters to the user.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add a firm to a workspace"
+   }
+  },
+  {
+   "name": "update_firm",
+   "title": "Change a firm's workspace facets",
+   "description": "Splits by trust class, like every write here. Facets the user asks for by name — status (Researching/Networking/Applied/Interviewing/Offer/Dormant/Out), target flag, priority 1–3, campus_recruiting (on_campus / off_campus) — are set explicitly. Prose and classification — why/intel notes, groups, tier, location, kind — fill only where empty; the user's own words are never overwritten and differences are reported back.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "Researching",
+       "Networking",
+       "Applied",
+       "Interviewing",
+       "Offer",
+       "Dormant",
+       "Out"
+      ]
+     },
+     "priority": {
+      "description": "1 (highest) to 3.",
+      "type": "number"
+     },
+     "tier": {
+      "type": "string"
+     },
+     "location": {
+      "type": "string"
+     },
+     "kind": {
+      "type": "string"
+     },
+     "groups": {
+      "description": "Coverage groups of interest.",
+      "type": "string"
+     },
+     "campus_recruiting": {
+      "description": "Whether the firm runs its own structured process at the user's school (on_campus: never suggest cold outreach before its presentation) or the user must start the conversation (off_campus). Set outright.",
+      "type": "string",
+      "enum": [
+       "on_campus",
+       "off_campus"
+      ]
+     },
+     "why_note": {
+      "type": "string"
+     },
+     "intel_note": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Change a firm's workspace facets"
+   },
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "landed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "conflicts": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "landed",
+     "conflicts"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "add_office",
+   "title": "Add an office to a firm",
+   "description": "Offices are a facet on firms — a filter dimension for contacts and applications. Adds one (label + optional market/target flag/notes); duplicates by label are refused. Additive only: removing offices is the user’s call, in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "description": "Firm name as it appears in the book."
+     },
+     "label": {
+      "type": "string",
+      "description": "e.g. \"New York\", \"London\"."
+     },
+     "market": {
+      "description": "Coverage market, if distinct from the label.",
+      "type": "string"
+     },
+     "is_target": {
+      "type": "boolean"
+     },
+     "notes": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "firm",
+     "label"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add an office to a firm"
+   }
+  },
+  {
+   "name": "add_note",
+   "title": "Write a notebook note",
+   "description": "Creates a note in the user's notebook — research summaries, prep material, meeting write-ups — optionally linked to a firm or contact. Assistant notes are marked as yours: only those can be edited via update_note; the user's own notes are untouchable.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "type": "string"
+     },
+     "body": {
+      "type": "string",
+      "description": "Markdown."
+     },
+     "firm": {
+      "description": "Link to a firm in the book.",
+      "type": "string"
+     },
+     "contact": {
+      "description": "Link to a person in the book.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "title",
+     "body"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Write a notebook note"
+   }
+  },
+  {
+   "name": "get_notes",
+   "title": "List the user's notes",
+   "description": "Titles and previews from the notebook, marking which notes are assistant-written (editable via update_note) versus the user's own. Optional text search across titles and bodies.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "search": {
+      "type": "string"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the user's notes"
+   }
+  },
+  {
+   "name": "update_note",
+   "title": "Edit a note the assistant wrote",
+   "description": "Replaces or appends to ONE note by exact title — and only if the assistant wrote it (via add_note). The user's own notes are refused; they edit theirs in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "type": "string",
+      "description": "The exact note title, from get_notes."
+     },
+     "body": {
+      "description": "Replace the whole body.",
+      "type": "string"
+     },
+     "append": {
+      "description": "Add below the existing body instead of replacing.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "title"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Edit a note the assistant wrote"
+   }
+  },
+  {
+   "name": "create_workspace",
+   "title": "Create a workspace",
+   "description": "A new container for a separate search (a different track, a second season, a niche vertical). Runs the app's own creation path, so plan slot caps apply — a refusal means the user can archive a workspace or upgrade, in the app. Stock it afterwards with import_seed or add_firm.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "Display name, e.g. \"PE Funds 2027\"."
+     },
+     "emoji": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Create a workspace"
+   }
+  },
+  {
+   "name": "rename_workspace",
+   "title": "Rename a workspace",
+   "description": "Changes the display name only — the key (used by every other tool) never changes.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "name": {
+      "type": "string",
+      "description": "The new display name."
+     }
+    },
+    "required": [
+     "workspace",
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Rename a workspace"
+   }
+  },
+  {
+   "name": "archive_workspace",
+   "title": "Archive or restore a workspace",
+   "description": "Archiving hides a workspace and frees its plan slot — nothing is deleted, and restore: true brings it back exactly as it was. The reversible pair is why this is exposed at all; deleting a workspace is not.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "restore": {
+      "description": "True = restore an archived workspace instead.",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Archive or restore a workspace"
+   }
+  },
+  {
+   "name": "add_template",
+   "title": "Add an outreach template",
+   "description": "A reusable email template in one workspace (Outreach / Follow-Up / Thank You / Referral & Apps / Other). Assistant templates are marked as yours — only those can be edited with update_template. Duplicate names are refused.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "name": {
+      "type": "string"
+     },
+     "category": {
+      "description": "Defaults to Other.",
+      "type": "string",
+      "enum": [
+       "Outreach",
+       "Follow-Up",
+       "Thank You",
+       "Referral & Apps",
+       "Other"
+      ]
+     },
+     "subject": {
+      "type": "string"
+     },
+     "body": {
+      "type": "string",
+      "description": "The email body; placeholders like {{first_name}} work as in the app."
+     }
+    },
+    "required": [
+     "workspace",
+     "name",
+     "body"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add an outreach template"
+   }
+  },
+  {
+   "name": "get_templates",
+   "title": "List a workspace's templates",
+   "description": "Names, categories, and subjects — marking which are assistant-written (editable via update_template).",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     }
+    },
+    "required": [
+     "workspace"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List a workspace's templates"
+   }
+  },
+  {
+   "name": "update_template",
+   "title": "Edit a template the assistant wrote",
+   "description": "Edits ONE template by name — and only if the assistant added it. The user's own templates and seeded starters are refused; the user edits those in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "workspace": {
+      "type": "string",
+      "description": "Workspace key, from list_workspaces."
+     },
+     "name": {
+      "type": "string",
+      "description": "The template name, from get_templates."
+     },
+     "subject": {
+      "type": "string"
+     },
+     "body": {
+      "type": "string"
+     },
+     "category": {
+      "type": "string",
+      "enum": [
+       "Outreach",
+       "Follow-Up",
+       "Thank You",
+       "Referral & Apps",
+       "Other"
+      ]
+     }
+    },
+    "required": [
+     "workspace",
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Edit a template the assistant wrote"
+   }
+  },
+  {
+   "name": "create_deck",
+   "title": "Create a staged study deck",
+   "description": "Creates an assistant-authored deck in a staged state. The user reviews it in Calaf Prep before it becomes part of their study library. Before creating a deck from a document, confirm the deck name and roughly how many cards the user wants; do not guess a count.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+     },
+     "firm": {
+      "description": "Optional firm already in the user’s book.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+     },
+     "source_name": {
+      "description": "Optional human-readable source label.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Create a staged study deck"
+   }
+  },
+  {
+   "name": "add_cards",
+   "title": "Add cards to a staged study deck",
+   "description": "Adds up to 200 cards to an unreviewed assistant-created deck, deduped by normalized front. Write one fact per card; put a question on the front; avoid “list the five…” prompts and paragraph-length backs; cite the source page or slide in note. Coverage before granularity: when the source is itself a list of questions (a question bank, practice sheet, or interview guide), write one card for every question it poses before splitting any answer into more cards, and tell the user how many of the document's questions the deck covers. Never edits existing cards. In hosts that render MCP Apps, the result shows the staged deck so the user can remove cards and confirm it in place; do not ask them to confirm in Calaf as well.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "deck": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "Exact deck name returned by create_deck."
+     },
+     "cards": {
+      "minItems": 1,
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "front": {
+         "type": "string",
+         "minLength": 1,
+         "maxLength": 1000
+        },
+        "back": {
+         "type": "string",
+         "minLength": 1,
+         "maxLength": 10000
+        },
+        "note": {
+         "type": "string",
+         "maxLength": 2000
+        },
+        "tags": {
+         "maxItems": 12,
+         "type": "array",
+         "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+         }
+        }
+       },
+       "required": [
+        "front",
+        "back"
+       ]
+      }
+     }
+    },
+    "required": [
+     "deck",
+     "cards"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/deck-review.html"
+    },
+    "openai/outputTemplate": "ui://calaf/deck-review.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add cards to a staged study deck"
+   }
+  },
+  {
+   "name": "get_contact",
+   "title": "Open one contact",
+   "description": "One person in the user's network with everything beside them: details, firm and office, warmth and status, next follow-up, the touchpoint timeline, open tasks, meetings, and applications at their firm. Use it before advising on a specific relationship; get_contacts is the list, this is the record.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "The contact’s name as the book uses it (a distinctive fragment matches)."
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Open one contact"
+   }
+  },
+  {
+   "name": "get_firm",
+   "title": "Open one firm",
+   "description": "One firm in the user's book with its profile (overview, HQ, leadership, recruiting process, pay, culture — the house profile plus the user's own research overlay), its logged deals and work items, the house profile's deals from the last two years, offices, the user's contacts there, applications, and recent activity. A priced deal carries its five brackets in `terms` (deal size, consideration, valuation, strategic rationale, economic trend; a null value means no source discloses it, so say \"not disclosed\", never estimate). House-profile deals are researched by AI: when `deals_disclaimer` is present, tell the user so and to verify the terms before citing them. get_firms is the roster; this is the record.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "The firm's name as the book uses it."
+     },
+     "workspace": {
+      "description": "Limit deals and the research overlay to one workspace (key from list_workspaces).",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Open one firm"
+   }
+  },
+  {
+   "name": "get_application",
+   "title": "Open one application",
+   "description": "One application with its interviews, open tasks and the user's contacts at the firm. get_applications is the pipeline; this is the record.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "The firm's name as the book uses it."
+     },
+     "program": {
+      "description": "Narrow to one program when the user has several applications at the firm.",
+      "type": "string",
+      "maxLength": 200
+     }
+    },
+    "required": [
+     "firm"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Open one application"
+   }
+  },
+  {
+   "name": "add_contact",
+   "title": "Add a contact the user typed in",
+   "description": "Creates one contact from the form the user filled in on the Network card. Refuses a duplicate name at the same firm.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "first_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+     },
+     "last_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "firm": {
+      "description": "A firm already in the book.",
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "email": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 320
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "location": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "school": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "connection_type": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "status": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "warmth": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "next_followup_on": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 10
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 4000
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "first_name",
+     "last_name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "remove_staged_cards",
+   "title": "Remove cards from a staged deck",
+   "description": "Drops the named cards from an unreviewed assistant-staged deck. Called by the staged-deck app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "deck_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     },
+     "card_ids": {
+      "minItems": 1,
+      "maxItems": 1000,
+      "type": "array",
+      "items": {
+       "type": "string",
+       "format": "uuid",
+       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      }
+     }
+    },
+    "required": [
+     "deck_id",
+     "card_ids"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "confirm_deck",
+   "title": "Confirm a staged deck",
+   "description": "Marks an assistant-staged deck reviewed so its cards enter the rehearsal queue. Called by the staged-deck app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "deck_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     }
+    },
+    "required": [
+     "deck_id"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "discard_deck",
+   "title": "Discard a staged deck",
+   "description": "Deletes an unreviewed assistant-staged deck and its cards. Called by the staged-deck app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "deck_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     }
+    },
+    "required": [
+     "deck_id"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "rehearse",
+   "title": "Rehearse due Prep cards",
+   "description": "Builds the user's rehearsal queue — answered prep questions and confirmed deck cards that are due, with each deck's daily limits applied — and, in hosts that render MCP Apps, shows the flashcards in the conversation: reveal, grade Again/Hard/Good/Easy, learning cards return within the session. Grades save to the same schedule the Calaf app uses. Use mode 'cram' to drill every card regardless of schedule (a deadline session), and deck to limit a cram to one deck. Call it when the user wants to study, drill, quiz themselves, or practise interview answers; do not narrate the cards' contents back to them.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "mode": {
+      "description": "'due' (default) honours the schedule and daily limits; 'cram' takes every card, unseen first.",
+      "type": "string",
+      "enum": [
+       "due",
+       "cram"
+      ]
+     },
+     "deck": {
+      "description": "Limit to one deck by exact name (cram only; due mode always mixes prep answers and decks).",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+     },
+     "limit": {
+      "description": "Most cards to load into the session (default 40).",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/rehearsal.html"
+    },
+    "openai/outputTemplate": "ui://calaf/rehearsal.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Rehearse due Prep cards"
+   }
+  },
+  {
+   "name": "grade_card",
+   "title": "Grade one rehearsed card",
+   "description": "Records one Again/Hard/Good/Easy grade through the same database function the Calaf app uses. Called by the rehearsal app after the user grades a card.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "card_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     },
+     "grade": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4,
+      "description": "1 Again, 2 Hard, 3 Good, 4 Easy."
+     },
+     "elapsed_ms": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 86400000
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "max_interval_days": {
+      "description": "The interview-date cap the app computed for this card.",
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 730
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "card_id",
+     "grade"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "undo_card_grade",
+   "title": "Undo the last grade on a card",
+   "description": "Restores a card to the state before its most recent grade, keeping the review history. Called by the rehearsal app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "card_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     }
+    },
+    "required": [
+     "card_id"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "visibility": [
+      "app"
+     ]
+    },
+    "openai/visibility": "private",
+    "openai/widgetAccessible": true
+   }
+  },
+  {
+   "name": "add_prep_question",
+   "title": "Add an interview prep question",
+   "description": "Adds a canonical question to the user's prep bank (deduped account-wide). Passing firm marks it as a question whose answer varies by firm; the question itself remains visible everywhere. Answers are drafted separately with draft_prep_answer.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "question": {
+      "type": "string"
+     },
+     "category": {
+      "description": "e.g. \"Behavioral\", \"Technical\", \"Firm-specific\". Defaults to Behavioral.",
+      "type": "string"
+     },
+     "firm": {
+      "description": "Tie it to a firm in the book.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "question"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Add an interview prep question"
+   }
+  },
+  {
+   "name": "get_prep",
+   "title": "List the user's prep questions",
+   "description": "The prep bank — unanswered questions by default (worth drafting), or everything.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "filter": {
+      "type": "string",
+      "enum": [
+       "unanswered",
+       "all"
+      ]
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "List the user's prep questions"
+   }
+  },
+  {
+   "name": "draft_prep_answer",
+   "title": "Draft an answer to an unanswered prep question",
+   "description": "Fills an EMPTY answer slot and marks it Draft — for the user to rework into their own words. A question the user has already answered is refused outright: their interview voice is theirs, and improvements belong in chat, not in their notes.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "question": {
+      "type": "string",
+      "description": "The question, from get_prep (a distinctive fragment matches)."
+     },
+     "answer": {
+      "type": "string",
+      "description": "The draft — specific to the user’s background where known."
+     },
+     "firm": {
+      "description": "Required for a firm-scoped question; omit for one general answer.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "question",
+     "answer"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Draft an answer to an unanswered prep question"
+   }
+  },
+  {
+   "name": "get_profile",
+   "title": "Who the user is",
+   "description": "The signed-in person as Calaf knows them: name, school and class, the workspaces they run and what each was seeded from, where they are in the recruiting cycle (read off their pipeline) and what this month is usually for in their track's cycle (the phase, with a one-line focus), the next key recruiting dates for their target firms, and counts across the book (contacts, firms, applications, open and overdue tasks, meetings ahead, cards due, unanswered prep). Call it at the start of a conversation, before giving advice, so the advice fits the person; it renders a 'this is you' card.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Who the user is"
+   }
+  },
+  {
+   "name": "get_briefing",
+   "title": "What needs the user today",
+   "description": "The attention list the Dashboard shows, as one card: overdue and due-today tasks (with Done and Snooze), follow-ups due and contacts going cold (with a one-tap push), interviews and deadlines in the next three weeks, meetings this week, past meetings still waiting for an outcome, and cards due for rehearsal. Every item opens its record in the card. Call it for 'what's on my plate', 'what should I do today', a morning check-in, or before planning a week; do not read the sections back — summarise and propose.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "What needs the user today"
+   }
+  },
+  {
+   "name": "search",
+   "title": "Search the whole book",
+   "description": "One search across contacts, firms, applications, open tasks, notes, decks, prep questions and templates by name or words in the text. Use it when the user names something and you do not know which kind of thing it is, or to find the book's spelling of a name before calling a write tool. Hits that have a record open in the card.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "query": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "description": "A name or a few words."
+     },
+     "limit": {
+      "description": "Most hits to return (default 30).",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+     }
+    },
+    "required": [
+     "query"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Search the whole book"
+   }
+  },
+  {
+   "name": "get_changes",
+   "title": "What changed lately",
+   "description": "Everything added, updated, logged or completed in the book in the last N days (default 7), newest first, each marked with who wrote it where the table records that: 'you', 'assistant', 'seed', 'import', or 'you or your assistant' for tables that carry no provenance (tasks, touchpoints, meetings, applications). Use it for a weekly review, 'what did you change', or to check what happened while the user was away.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "days": {
+      "description": "How far back to look (default 7).",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 90
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "What changed lately"
+   }
+  },
+  {
+   "name": "undo_last_write",
+   "title": "Take back one of the assistant's writes",
+   "description": "Without arguments: lists the assistant's most recent writes that can be taken back — notes, deals, templates, staged decks and firms it created — each with an Undo button in the card. With kind, id and confirm=true: removes that one row. Only rows carrying the assistant's own provenance can match; the user's rows never can, whatever id is passed. Ask the user before confirming. Touchpoints, tasks, meetings and application moves carry no provenance and are corrected with their own tools or in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Which kind of row to remove.",
+      "type": "string",
+      "enum": [
+       "note",
+       "deal",
+       "template",
+       "deck",
+       "firm"
+      ]
+     },
+     "id": {
+      "description": "The row id from the list this tool returns.",
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+     },
+     "confirm": {
+      "description": "Must be true to remove anything; false or missing only lists.",
+      "type": "boolean"
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Writing to your Calaf book…",
+    "openai/toolInvocation/invoked": "Take back one of the assistant's writes"
+   }
+  },
+  {
+   "name": "interview_brief",
+   "title": "Interview brief for one firm",
+   "description": "Everything the user needs before a room at one firm, from their own book: the application and its rounds, how the firm runs its process (stages, timeline, format), the next key recruiting dates, their people there with the last touch, the talking points (logged deals first, then the house profile's from the last two years; a priced deal carries its five brackets in `terms`: deal size, consideration, valuation, strategic rationale, economic trend, a null one meaning no source discloses it; house and assistant-logged deals are researched by AI and the record says so in `deals_disclaimer`, which you pass on), prep readiness (answered, firm-specific questions still open, cards due for this firm), open tasks and notes. Read-only. Call it for 'prep me for X', 'what do I need to know before my X interview', or before drafting a why-firm answer.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firm": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "Firm name as it appears in the book."
+     },
+     "program": {
+      "description": "Which application, if the firm has several.",
+      "type": "string",
+      "maxLength": 120
+     }
+    },
+    "required": [
+     "firm"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Interview brief for one firm"
+   }
+  },
+  {
+   "name": "compare_firms",
+   "title": "Compare firms side by side",
+   "description": "Two to eight firms from the book on the facts that decide where the week goes: tier, workspace status and priority, how many people the user knows there and the warmest, the live applications, the next date (an interview or deadline on file, else the next published recruiting date), pay on file, and deals logged. Each row opens the firm. Call it for 'rank my targets', 'where is my network thinnest', or 'which of these should I prioritise'.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "firms": {
+      "minItems": 2,
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 120
+      },
+      "description": "Firm names as they appear in the book."
+     },
+     "workspace": {
+      "description": "Read status and priority from this workspace (key from list_workspaces).",
+      "type": "string"
+     }
+    },
+    "required": [
+     "firms"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Compare firms side by side"
+   }
+  },
+  {
+   "name": "get_commons_events",
+   "title": "Events on the Commons",
+   "description": "The Commons events the user created or joined — info sessions, coffee chats in a group, networking nights — with when, where, the firm context and the event's state. Upcoming by default; window 'past' for what already happened, 'all' for both. Read-only; briefings and debriefs for an event live in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "window": {
+      "description": "Defaults to 'upcoming'.",
+      "type": "string",
+      "enum": [
+       "upcoming",
+       "past",
+       "all"
+      ]
+     }
+    }
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Events on the Commons"
+   }
+  },
+  {
+   "name": "get_commons_org",
+   "title": "An organization on the Commons",
+   "description": "How the Commons maps one organization — its groups and verticals with how many members' people sit in each and which branches the user has unlocked — and, where the user holds access, the people there they may see (name, title, group, office). Use it when the user asks who the community knows at a firm, or how a firm is organised. The user unlocks a branch by contributing a contact in the app.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 120,
+      "description": "The organization, by any of its names."
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "An organization on the Commons"
+   }
+  },
+  {
+   "name": "get_commons_schools",
+   "title": "Schools on the Commons",
+   "description": "Which schools and programmes the people mapped on the Commons come from, with counts — the 'people like you' backdrop. Read-only.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "Schools on the Commons"
+   }
+  },
+  {
+   "name": "get_commons_questions",
+   "title": "The user's reported questions",
+   "description": "Interview and coffee-chat questions the user has reported to the Commons, with their review state. Read-only; reporting a question happens in the app, where the consent step is.",
+   "inputSchema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {}
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "ui": {
+     "resourceUri": "ui://calaf/card.html"
+    },
+    "openai/outputTemplate": "ui://calaf/card.html",
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Reading your Calaf book…",
+    "openai/toolInvocation/invoked": "The user's reported questions"
+   }
+  }
+ ]
+}

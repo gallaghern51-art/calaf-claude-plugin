@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "calaf": {
+      "type": "http",
+      "url": "https://calaf.ai/api/mcp-account"
+    }
+  }
+}
