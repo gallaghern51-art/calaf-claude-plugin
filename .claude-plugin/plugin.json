@@ -10,6 +10,10 @@
   },
   "homepage": "https://calaf.ai/guide/assistant",
   "repository": "https://github.com/gallaghern51-art/calaf-claude-plugin",
+  "documentationUrl": "https://calaf.ai/guide/assistant",
+  "supportUrl": "mailto:support@calaf.ai",
+  "privacyPolicyUrl": "https://calaf.ai/privacy",
+  "termsOfServiceUrl": "https://calaf.ai/terms",
   "license": "MIT",
   "keywords": [
     "recruiting",
